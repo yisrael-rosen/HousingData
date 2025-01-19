@@ -42,20 +42,28 @@ def validate_housing_data(file_path):
                 if entry['year'] <= 2030 and growth < 0:
                     print(f"❌ Warning: Negative marketing growth in 2025-2030 period: {entry['year']}")
                     
-            # Validate against required target
-            if entry['marketed'] > entry['required']:
-                print(f"❌ Error: Marketed units exceed required target in year {entry['year']}")
+            # Validate total units against required target
+            total_units = entry['marketed'] + entry['submitted'] + entry['planned']
+            if total_units > entry['required']:
+                print(f"❌ Error: Total units ({total_units:,}) exceed required target ({entry['required']:,}) in year {entry['year']}")
+                print(f"Breakdown - Marketed: {entry['marketed']:,}, Submitted: {entry['submitted']:,}, Planned: {entry['planned']:,}")
                 return False
                 
             prev_marketed = entry['marketed']
             
+        # Print summary
         print("✅ Validation passed successfully!")
         print("\nSummary:")
         print(f"Total years: {len(years_data)}")
         print(f"First year: {years_data[0]['year']}")
         print(f"Last year: {years_data[-1]['year']}")
-        print(f"Final marketed units: {years_data[-1]['marketed']:,}")
-        print(f"Final required target: {years_data[-1]['required']:,}")
+        last_year = years_data[-1]
+        print(f"Final year breakdown:")
+        print(f"- Required target: {last_year['required']:,}")
+        print(f"- Total units: {last_year['marketed'] + last_year['submitted'] + last_year['planned']:,}")
+        print(f"  • Marketed: {last_year['marketed']:,}")
+        print(f"  • Submitted: {last_year['submitted']:,}")
+        print(f"  • Planned: {last_year['planned']:,}")
         return True
         
     except json.JSONDecodeError as e:
