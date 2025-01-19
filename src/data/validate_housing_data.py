@@ -42,12 +42,39 @@ def validate_housing_data(file_path):
                 if entry['year'] <= 2030 and growth < 0:
                     print(f"❌ Warning: Negative marketing growth in 2025-2030 period: {entry['year']}")
                     
-            # Validate total units against required target
-            total_units = entry['marketed'] + entry['submitted'] + entry['planned']
-            if total_units > entry['required']:
-                print(f"❌ Error: Total units ({total_units:,}) exceed required target ({entry['required']:,}) in year {entry['year']}")
-                print(f"Breakdown - Marketed: {entry['marketed']:,}, Submitted: {entry['submitted']:,}, Planned: {entry['planned']:,}")
+            # Validate that no component exceeds the required target
+            required = entry['required']
+            components = {
+                'marketed': entry['marketed'],
+                'submitted': entry['submitted'],
+                'planned': entry['planned']
+            }
+            
+            # Check each component individually
+            for component_name, component_value in components.items():
+                if component_value > required:
+                    print(f"❌ Error: {component_name} units ({component_value:,}) exceed required target ({required:,}) in year {entry['year']}")
+                    return False
+            
+            # Validate total units against required target for each year
+            total_units = sum(components.values())
+            if total_units > required:
+                print(f"❌ Error: Total units ({total_units:,}) exceed required target ({required:,}) in year {entry['year']}")
+                print(f"Breakdown for {entry['year']}:")
+                print(f"- Required target: {required:,}")
+                print(f"- Total units: {total_units:,}")
+                for component_name, component_value in components.items():
+                    print(f"  • {component_name.title()}: {component_value:,}")
+                print(f"  • Percentage of target: {(total_units/required*100):.1f}%")
                 return False
+            
+            # Print validation info for each year
+            print(f"\nValidating year {entry['year']}:")
+            print(f"- Required target: {required:,}")
+            print(f"- Total units: {total_units:,}")
+            for component_name, component_value in components.items():
+                print(f"  • {component_name.title()}: {component_value:,} ({(component_value/required*100):.1f}% of target)")
+            print(f"- Total percentage of target: {(total_units/required*100):.1f}%")
                 
             prev_marketed = entry['marketed']
             

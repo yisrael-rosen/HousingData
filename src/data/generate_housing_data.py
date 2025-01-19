@@ -12,31 +12,34 @@ def generate_housing_data():
     submitted_ratio = 0.25  # 25% of total units
     planned_ratio = 0.15   # 15% of total units
     
-    # Starting total is about 50% of initial required
-    initial_total_ratio = 0.5
+    # Starting total is about 40% of initial required
+    initial_total_ratio = 0.4
     
     for year in range(2025, 2041):
         # Calculate required based on exponential growth to 250,000 by 2040
         growth_rate = (250000/67273)**(1/15) - 1  # Calculate required growth rate
         required = 67273 * (1 + growth_rate)**(year - 2025)
         
-        # Calculate total units ratio that grows from 50% to 85% over time
+        # Calculate exponential growth curve
         years_passed = year - 2025
-        total_ratio = initial_total_ratio + (0.85 - initial_total_ratio) * (years_passed / 15)
+        progress = years_passed / 15
         
-        # Calculate total units as growing percentage of required
-        total_units = required * total_ratio
+        # Calculate target percentages that ensure cumulative sum stays under required
+        # Max percentages: marketed 35%, submitted 15%, planned 8% (total 58%)
+        max_marketed_pct = 0.35
+        max_submitted_pct = 0.15
+        max_planned_pct = 0.08
         
-        # Distribute units according to ratios with slight adjustments over time
-        time_factor = years_passed / 15  # Goes from 0 to 1
-        # Gradually increase marketed ratio and decrease others
-        current_marketed_ratio = marketed_ratio + (0.7 - marketed_ratio) * time_factor
-        current_submitted_ratio = submitted_ratio - (submitted_ratio - 0.2) * time_factor
-        current_planned_ratio = planned_ratio - (planned_ratio - 0.1) * time_factor
+        # Use exponential growth to reach these percentages
+        growth_factor = progress ** 0.5  # Creates curved growth
+        marketed_pct = 0.15 + (max_marketed_pct - 0.15) * growth_factor
+        submitted_pct = 0.06 + (max_submitted_pct - 0.06) * growth_factor
+        planned_pct = 0.03 + (max_planned_pct - 0.03) * growth_factor
         
-        marketed = total_units * current_marketed_ratio
-        submitted = total_units * current_submitted_ratio
-        planned = total_units * current_planned_ratio
+        # Calculate units based on percentages of required target
+        marketed = required * marketed_pct
+        submitted = required * submitted_pct
+        planned = required * planned_pct
         
         # Built units are based on previous year's marketed, starting lower
         built = marketed * 0.8 if year == 2025 else data[-1]["marketed"] * 0.85
