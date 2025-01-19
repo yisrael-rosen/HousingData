@@ -47,7 +47,7 @@ export const generateYAxisTicks = (
     ...data.map(point => 
       Object.entries(point)
         .filter(([key]) => key !== 'year' && seriesTypes[key]?.type === 'bar')
-        .reduce((sum, [key, value]) => sum + value, 0)
+        .reduce((sum, entry) => sum + entry[1], 0)
     )
   );
 
