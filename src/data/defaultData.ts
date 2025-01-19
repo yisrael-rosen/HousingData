@@ -3,7 +3,7 @@ import { ChartConfig, DataPoint } from '../types/ChartTypes';
 export const defaultConfig: ChartConfig = {
   metadata: {
     title: "סך מצטבר של יחידות דיור לאוכלוסייה החרדית 2025-2040",
-    footnote: "מבוסס על נתוני דוח מבקר המדינה 2023. הנתונים מציגים את הסך המצטבר של יחידות הדיור בכל שנה.",
+    footnote: "הנתונים לדוגמה בלבד",
     yearRange: {
       start: 2025,
       end: 2040
