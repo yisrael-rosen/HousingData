@@ -34,19 +34,7 @@ const App: React.FC = () => {
         />
       </div>
       
-      <div className="mt-8 max-w-7xl mx-auto">
-        <h3 className="text-lg font-semibold mb-4">Features:</h3>
-        <ul className="list-disc list-inside space-y-2">
-          <li>Interactive legend - click series to toggle visibility</li>
-          <li>Responsive design with automatic resizing</li>
-          <li>RTL support for Hebrew text</li>
-          <li>Stacked bar chart with line overlay</li>
-          <li>Custom tooltips with detailed information</li>
-          <li>Change indicators showing trends</li>
-          <li>Configurable appearance and behavior</li>
-          <li>TypeScript support with full type safety</li>
-        </ul>
-      </div>
+
     </div>
   );
 };
