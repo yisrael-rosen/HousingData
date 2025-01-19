@@ -2,130 +2,130 @@
   "data": [
     {
       "year": 2025,
-      "marketed": 35000,
-      "submitted": 11900,
-      "planned": 2000,
-      "built": 28000,
+      "marketed": 20181,
+      "submitted": 8409,
+      "planned": 5045,
+      "built": 16145,
       "required": 67273
     },
     {
       "year": 2026,
-      "marketed": 39200,
-      "submitted": 13272,
-      "planned": 2160,
-      "built": 29750,
-      "required": 79454
+      "marketed": 23311,
+      "submitted": 9478,
+      "planned": 5635,
+      "built": 17153,
+      "required": 73425
     },
     {
       "year": 2027,
-      "marketed": 43904,
-      "submitted": 14804,
-      "planned": 2332,
-      "built": 33320,
-      "required": 91636
+      "marketed": 26870,
+      "submitted": 10660,
+      "planned": 6279,
+      "built": 19814,
+      "required": 80140
     },
     {
       "year": 2028,
-      "marketed": 49172,
-      "submitted": 16515,
-      "planned": 2519,
-      "built": 37318,
-      "required": 103818
+      "marketed": 30912,
+      "submitted": 11965,
+      "planned": 6980,
+      "built": 22839,
+      "required": 87470
     },
     {
       "year": 2029,
-      "marketed": 55073,
-      "submitted": 18426,
-      "planned": 2720,
-      "built": 41796,
-      "required": 116000
+      "marketed": 35497,
+      "submitted": 13406,
+      "planned": 7741,
+      "built": 26275,
+      "required": 95470
     },
     {
       "year": 2030,
-      "marketed": 61681,
-      "submitted": 20561,
-      "planned": 2938,
-      "built": 46812,
-      "required": 128182
+      "marketed": 40696,
+      "submitted": 14993,
+      "planned": 8567,
+      "built": 30172,
+      "required": 104201
     },
     {
       "year": 2031,
-      "marketed": 65382,
-      "submitted": 21224,
-      "planned": 2300,
-      "built": 52428,
-      "required": 140363
+      "marketed": 46584,
+      "submitted": 16741,
+      "planned": 9462,
+      "built": 34591,
+      "required": 113731
     },
     {
       "year": 2032,
-      "marketed": 69305,
-      "submitted": 22643,
-      "planned": 2644,
-      "built": 55574,
-      "required": 152545
+      "marketed": 53247,
+      "submitted": 18664,
+      "planned": 10429,
+      "built": 39596,
+      "required": 124132
     },
     {
       "year": 2033,
-      "marketed": 73464,
-      "submitted": 24168,
-      "planned": 3041,
-      "built": 58909,
-      "required": 164727
+      "marketed": 60781,
+      "submitted": 20777,
+      "planned": 11474,
+      "built": 45259,
+      "required": 135485
     },
     {
       "year": 2034,
-      "marketed": 77872,
-      "submitted": 25810,
-      "planned": 3498,
-      "built": 62444,
-      "required": 176909
+      "marketed": 69295,
+      "submitted": 23098,
+      "planned": 12599,
+      "built": 51663,
+      "required": 147876
     },
     {
       "year": 2035,
-      "marketed": 82544,
-      "submitted": 27579,
-      "planned": 4022,
-      "built": 66191,
-      "required": 189091
+      "marketed": 78907,
+      "submitted": 25644,
+      "planned": 13808,
+      "built": 58900,
+      "required": 161401
     },
     {
       "year": 2036,
-      "marketed": 87497,
-      "submitted": 29487,
-      "planned": 4626,
-      "built": 70162,
-      "required": 201272
+      "marketed": 89752,
+      "submitted": 28436,
+      "planned": 15106,
+      "built": 67070,
+      "required": 176162
     },
     {
       "year": 2037,
-      "marketed": 92746,
-      "submitted": 31548,
-      "planned": 5320,
-      "built": 74372,
-      "required": 213454
+      "marketed": 101982,
+      "submitted": 31494,
+      "planned": 16497,
+      "built": 76289,
+      "required": 192273
     },
     {
       "year": 2038,
-      "marketed": 98311,
-      "submitted": 33776,
-      "planned": 6118,
-      "built": 78834,
-      "required": 225636
+      "marketed": 115762,
+      "submitted": 34841,
+      "planned": 17982,
+      "built": 86684,
+      "required": 209858
     },
     {
       "year": 2039,
-      "marketed": 104210,
-      "submitted": 36188,
-      "planned": 7035,
-      "built": 83564,
-      "required": 237818
+      "marketed": 131282,
+      "submitted": 38501,
+      "planned": 19566,
+      "built": 98397,
+      "required": 229051
     },
     {
       "year": 2040,
-      "marketed": 110462,
-      "submitted": 38802,
-      "planned": 8091,
-      "built": 88578,
+      "marketed": 148750,
+      "submitted": 42500,
+      "planned": 21250,
+      "built": 111589,
       "required": 250000
     }
   ]

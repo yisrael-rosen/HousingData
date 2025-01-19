@@ -65,7 +65,7 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
   return (
     <div 
       dir={direction}
-      className={`w-full p-4 ${className} ${loading ? 'opacity-50' : ''}`}
+      className={`w-full p-6 ${className} ${loading ? 'opacity-50' : ''}`}
     >
       <h2 className="text-2xl font-bold text-center mb-8">{metadata.title}</h2>
       
@@ -73,7 +73,7 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
         <ResponsiveContainer>
           <ComposedChart
             data={chartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+            margin={{ top: 20, right: 30, left: 30, bottom: 10 }}
           >
             {appearance?.gridLines !== false && (
               <CartesianGrid strokeDasharray="3 3" />
@@ -93,7 +93,7 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
               ticks={yAxisTicks}
               tickFormatter={(value) => new Intl.NumberFormat(
                 language === 'he' ? 'he-IL' : 'en-US', 
-                { notation: 'compact' }
+                { notation: 'compact', maximumFractionDigits: 0 }
               ).format(value)}
             />
             
@@ -108,9 +108,15 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
             
             <Legend
               verticalAlign="bottom"
-              height={50}
+              height={60}
               onClick={handleSeriesClick}
               formatter={(value) => seriesTypes[value as string]?.name || value}
+              wrapperStyle={{
+                paddingTop: '20px',
+                borderTop: '1px solid #eee'
+              }}
+              iconSize={12}
+              iconType="circle"
             />
             
             {sortedSeries.map(([key, config]) => 
@@ -124,6 +130,8 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
                   barSize={appearance?.barSize || 20}
                   opacity={config.opacity}
                   isAnimationActive={appearance?.animation !== false}
+                  cursor="pointer"
+                  className="transition-opacity duration-200 hover:opacity-80"
                 />
               ) : (
                 <Line
@@ -137,6 +145,8 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
                   strokeDasharray={config.dashArray}
                   opacity={config.opacity}
                   isAnimationActive={appearance?.animation !== false}
+                  activeDot={{ r: 6, strokeWidth: 2 }}
+                  className="transition-opacity duration-200 hover:opacity-80"
                 />
               )
             )}
