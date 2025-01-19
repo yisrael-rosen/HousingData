@@ -5,12 +5,12 @@ def generate_housing_data():
     data = []
     base_marketed = 45000  # Starting point for marketed
     base_planned = 3000    # Starting point for planned
-    base_submitted = 6000  # Starting point for submitted
+    base_submitted = 4500  # Starting point for submitted (between planned and marketed)
     
     # Growth rates
     marketing_growth_2025_2030 = 0.15  # 15% growth in marketing 2025-2030
     marketing_growth_2030_2040 = 0.08  # 8% growth in marketing 2030-2040
-    planning_growth_2030_2040 = 0.20   # 20% growth in planning 2030-2040
+    planning_growth_2030_2040 = 0.25   # 25% growth in planning 2030-2040
     
     for year in range(2025, 2041):
         # Calculate required based on linear growth to 250,000 by 2040
@@ -29,8 +29,8 @@ def generate_housing_data():
         else:
             planned = base_planned * (1 + planning_growth_2030_2040) ** (year - 2030)
             
-        # Calculate submitted - always between planned and marketed
-        submitted = base_submitted * (1 + 0.12) ** (year - 2025)
+        # Calculate submitted - dynamically between planned and marketed
+        submitted = (planned + marketed) / 2.5  # Weighted average closer to planned
         
         # Built units are based on previous year's marketed, starting lower
         built = marketed * 0.8 if year == 2025 else data[-1]["marketed"] * 0.85
