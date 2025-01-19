@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages --dist dist --message 'Deploy React app to GitHub Pages'"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@types/recharts": "^1.8.29",
