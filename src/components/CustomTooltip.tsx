@@ -173,4 +173,4 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   );
 };
 
-export default CustomTooltip;
+export default React.memo(CustomTooltip);
