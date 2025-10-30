@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { MouseEvent } from 'react';
+import { Payload } from 'recharts/types/component/DefaultLegendContent';
 
 import { ChartProps } from '../types/ChartTypes';
 import { generateXAxisTicks, generateYAxisTicks } from '../utils/chartUtils';
@@ -47,8 +48,7 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
     [chartData, seriesTypes]
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleSeriesClick = (entry: any) => {
+  const handleSeriesClick = (entry: Payload) => {
     if (onSeriesClick && entry?.dataKey) {
       onSeriesClick(String(entry.dataKey));
     }
@@ -63,17 +63,25 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
   };
 
   return (
-    <div 
+    <div
       dir={direction}
       className={`w-full p-6 ${className} ${loading ? 'opacity-50' : ''}`}
+      role="region"
+      aria-label={metadata.title}
     >
-      <h2 className="text-2xl font-bold text-center mb-8">{metadata.title}</h2>
+      <h2 className="text-2xl font-bold text-center mb-8" id="chart-title">{metadata.title}</h2>
       
-      <div style={{ height: appearance?.height ? `${appearance.height * 0.25}rem` : '24rem' }}>
+      <div
+        style={{ height: appearance?.height ? `${appearance.height * 0.25}rem` : '24rem' }}
+        role="img"
+        aria-labelledby="chart-title"
+        aria-describedby={metadata.footnote ? "chart-footnote" : undefined}
+      >
         <ResponsiveContainer>
           <ComposedChart
             data={chartData}
             margin={{ top: 20, right: 30, left: 30, bottom: 10 }}
+            aria-label={`${metadata.title} - ${language === 'he' ? 'תרשים עמודות וקווים' : 'Bar and line chart'}`}
           >
             {appearance?.gridLines !== false && (
               <CartesianGrid strokeDasharray="3 3" />
@@ -155,7 +163,7 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
       </div>
 
       {metadata.footnote && (
-        <div className="text-sm text-gray-600 text-center mt-4">
+        <div className="text-sm text-gray-600 text-center mt-4" id="chart-footnote">
           {metadata.footnote}
         </div>
       )}
@@ -163,4 +171,4 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
   );
 };
 
-export default EnhancedHousingChart;
+export default React.memo(EnhancedHousingChart);

@@ -43,4 +43,4 @@ const ChangeIndicator: React.FC<ChangeIndicatorProps> = ({
   }
 };
 
-export default ChangeIndicator;
+export default React.memo(ChangeIndicator);
