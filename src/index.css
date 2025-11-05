@@ -43,6 +43,21 @@
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-gray-500 dark:bg-gray-500;
   }
+
+  /* Tooltip specific scrollbar */
+  [role="tooltip"] ::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  [role="tooltip"] ::-webkit-scrollbar-track {
+    @apply bg-gray-100 dark:bg-gray-700;
+    border-radius: 3px;
+  }
+
+  [role="tooltip"] ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600;
+    border-radius: 3px;
+  }
 }
 
 /* Chart Animations */
