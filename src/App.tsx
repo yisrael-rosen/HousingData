@@ -6,6 +6,7 @@ import { defaultConfig, defaultData } from './data/defaultData';
 import { ChartConfig } from './types/ChartTypes';
 import { useTheme } from './contexts/ThemeContext';
 import { useGlobalShortcuts } from './hooks/useKeyboardNavigation';
+import { useLocalStorage } from './hooks/useLocalStorage';
 import { exportToPNG, exportToCSV } from './utils/exportUtils';
 
 // Lazy load heavy components
@@ -21,12 +22,9 @@ interface FilterConfig {
 }
 
 const App: React.FC = () => {
-  const [config, setConfig] = useState<ChartConfig>(defaultConfig);
-  const [loading, setLoading] = useState(true);
-  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-  const [filters, setFilters] = useState<FilterConfig>({
+  // Use localStorage to persist user preferences
+  const [config, setConfig] = useLocalStorage<ChartConfig>('housing-chart-config', defaultConfig);
+  const [filters, setFilters] = useLocalStorage<FilterConfig>('housing-chart-filters', {
     yearRange: {
       min: Math.min(...defaultData.map(d => d.year)),
       max: Math.max(...defaultData.map(d => d.year)),
@@ -34,6 +32,11 @@ const App: React.FC = () => {
     valueFilters: {},
     changeFilter: { enabled: false },
   });
+
+  const [loading, setLoading] = useState(true);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLButtonElement>(null);
   const { toggleTheme } = useTheme();
