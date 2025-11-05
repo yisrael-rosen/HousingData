@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Moon, Sun, Globe, Download, Settings, FileText, Image } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { exportToPNG, exportToCSV } from '../utils/exportUtils';
@@ -21,6 +21,26 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const settingsRef = useRef<HTMLDivElement>(null);
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setShowSettingsMenu(false);
+      }
+      if (exportRef.current && !exportRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleExportPNG = async () => {
     if (chartRef?.current) {
@@ -38,45 +58,88 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors">
-      <div className="flex items-center gap-2">
-        <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" aria-hidden="true" />
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          {language === 'he' ? 'הגדרות' : 'Settings'}
-        </span>
+      {/* Settings Menu */}
+      <div className="relative" ref={settingsRef}>
+        <button
+          onClick={() => setShowSettingsMenu(!showSettingsMenu)}
+          className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          aria-label={language === 'he' ? 'תפריט הגדרות' : 'Settings menu'}
+          aria-expanded={showSettingsMenu}
+          aria-haspopup="true"
+        >
+          <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" aria-hidden="true" />
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {language === 'he' ? 'הגדרות' : 'Settings'}
+          </span>
+        </button>
+
+        {showSettingsMenu && (
+          <div
+            className="absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
+            role="menu"
+            aria-orientation="vertical"
+          >
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700">
+              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                {language === 'he' ? 'הגדרות מערכת' : 'System Settings'}
+              </h3>
+            </div>
+
+            {/* Theme Setting */}
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  {language === 'he' ? 'מצב תצוגה' : 'Display Mode'}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  toggleTheme();
+                  setShowSettingsMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                role="menuitem"
+              >
+                {theme === 'light' ? (
+                  <>
+                    <Moon className="w-4 h-4" aria-hidden="true" />
+                    <span className="text-sm">{language === 'he' ? 'עבור למצב כהה' : 'Switch to Dark Mode'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Sun className="w-4 h-4" aria-hidden="true" />
+                    <span className="text-sm">{language === 'he' ? 'עבור למצב בהיר' : 'Switch to Light Mode'}</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Language Setting */}
+            <div className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  {language === 'he' ? 'שפה' : 'Language'}
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  onLanguageChange(language === 'he' ? 'en' : 'he');
+                  setShowSettingsMenu(false);
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                role="menuitem"
+              >
+                <Globe className="w-4 h-4" aria-hidden="true" />
+                <span className="text-sm">{language === 'he' ? 'Switch to English' : 'עבור לעברית'}</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          aria-label={theme === 'light' ? (language === 'he' ? 'עבור למצב כהה' : 'Switch to dark mode') : (language === 'he' ? 'עבור למצב בהיר' : 'Switch to light mode')}
-        >
-          {theme === 'light' ? (
-            <>
-              <Moon className="w-4 h-4" aria-hidden="true" />
-              <span className="text-sm hidden sm:inline">{language === 'he' ? 'מצב כהה' : 'Dark'}</span>
-            </>
-          ) : (
-            <>
-              <Sun className="w-4 h-4" aria-hidden="true" />
-              <span className="text-sm hidden sm:inline">{language === 'he' ? 'מצב בהיר' : 'Light'}</span>
-            </>
-          )}
-        </button>
-
-        {/* Language Toggle */}
-        <button
-          onClick={() => onLanguageChange(language === 'he' ? 'en' : 'he')}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          aria-label={language === 'he' ? 'Switch to English' : 'עבור לעברית'}
-        >
-          <Globe className="w-4 h-4" aria-hidden="true" />
-          <span className="text-sm hidden sm:inline">{language === 'he' ? 'English' : 'עברית'}</span>
-        </button>
-
         {/* Export Menu */}
-        <div className="relative">
+        <div className="relative" ref={exportRef}>
           <button
             onClick={() => setShowExportMenu(!showExportMenu)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

@@ -9,19 +9,6 @@ interface CustomTooltipProps extends TooltipProps<number, string> {
   data: DataPoint[];
 }
 
-interface MouseCoords {
-  x: number;
-  y: number;
-}
-
-interface RechartsWindow extends Window {
-  Recharts?: {
-    internal?: {
-      mouse: MouseCoords;
-    };
-  };
-}
-
 const CustomTooltip: React.FC<CustomTooltipProps> = ({ 
   active, 
   payload, 
@@ -32,41 +19,62 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   const tooltipRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    if (tooltipRef.current && active) {
-      const tooltip = tooltipRef.current;
-      const chartContainer = tooltip.closest('.recharts-wrapper');
-      if (!chartContainer) return;
+    if (!tooltipRef.current || !active) return;
 
-      const chartRect = chartContainer.getBoundingClientRect();
-      const tooltipRect = tooltip.getBoundingClientRect();
-      
-      // Get mouse position from Recharts internal state
-      const mouseCoords = ((window as RechartsWindow).Recharts?.internal?.mouse) || { x: 0, y: 0 };
-      
-      // Calculate initial position (default to right of cursor)
-      let left = mouseCoords.x + 20;
-      let top = mouseCoords.y - tooltipRect.height / 2;
-      
-      // Adjust if tooltip would overflow right edge
-      if (left + tooltipRect.width > chartRect.right - 10) {
-        left = mouseCoords.x - tooltipRect.width - 20;
-      }
-      
-      // Adjust if tooltip would overflow bottom
-      if (top + tooltipRect.height > chartRect.bottom - 10) {
-        top = chartRect.bottom - tooltipRect.height - 10;
-      }
-      
-      // Adjust if tooltip would overflow top
-      if (top < chartRect.top + 10) {
-        top = chartRect.top + 10;
-      }
-      
-      tooltip.style.position = 'fixed';
-      tooltip.style.left = `${left}px`;
-      tooltip.style.top = `${top}px`;
-      tooltip.style.zIndex = '1000';
+    const tooltip = tooltipRef.current;
+    const tooltipRect = tooltip.getBoundingClientRect();
+
+    // Get viewport dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+
+    // Get chart container
+    const chartContainer = tooltip.closest('.recharts-wrapper');
+    if (!chartContainer) return;
+
+    const chartRect = chartContainer.getBoundingClientRect();
+
+    // Default positioning - center in viewport
+    let left = tooltipRect.left;
+    let top = tooltipRect.top;
+
+    // Adjust horizontal position if tooltip overflows
+    if (left + tooltipRect.width > viewportWidth - 20) {
+      // Move tooltip to the left
+      left = viewportWidth - tooltipRect.width - 20;
     }
+
+    if (left < 20) {
+      // Ensure minimum left margin
+      left = 20;
+    }
+
+    // Adjust vertical position if tooltip overflows
+    if (top + tooltipRect.height > viewportHeight - 20) {
+      // Move tooltip up
+      top = viewportHeight - tooltipRect.height - 20;
+    }
+
+    if (top < 20) {
+      // Ensure minimum top margin
+      top = 20;
+    }
+
+    // Keep tooltip within chart bounds when possible
+    if (left < chartRect.left) {
+      left = Math.max(20, chartRect.left + 10);
+    }
+
+    if (left + tooltipRect.width > chartRect.right) {
+      left = Math.max(20, chartRect.right - tooltipRect.width - 10);
+    }
+
+    // Apply positioning
+    tooltip.style.position = 'fixed';
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+    tooltip.style.zIndex = '1000';
+    tooltip.style.maxWidth = `${Math.min(320, viewportWidth - 40)}px`;
   }, [active, payload, label]);
 
   if (!active || !payload || !payload.length) return null;
@@ -84,7 +92,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   return (
     <div
       ref={tooltipRef}
-      className={`bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl min-w-[280px] transition-all duration-200 ease-in-out backdrop-blur-sm`}
+      className={`bg-white dark:bg-gray-800 p-3 sm:p-4 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl min-w-[240px] sm:min-w-[280px] max-w-[90vw] sm:max-w-[320px] transition-all duration-200 ease-in-out backdrop-blur-sm`}
       dir={direction}
       style={{
         direction,
@@ -95,7 +103,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
       role="tooltip"
       aria-live="polite"
     >
-      <div className="font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-3 text-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-700 text-gray-800 dark:text-gray-100 -mx-4 -mt-4 p-4 rounded-t-xl">
+      <div className="font-bold mb-3 sm:mb-4 border-b border-gray-200 dark:border-gray-700 pb-2 sm:pb-3 text-lg sm:text-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-700 text-gray-800 dark:text-gray-100 -mx-3 sm:-mx-4 -mt-3 sm:-mt-4 p-3 sm:p-4 rounded-t-xl">
         {language === 'he' ? `שנת ${label}` : `Year ${label}`}
       </div>
       
