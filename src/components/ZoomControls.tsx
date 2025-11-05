@@ -10,7 +10,7 @@ interface ZoomControlsProps {
   isZoomed: boolean;
 }
 
-const ZoomControls: React.FC<ZoomControlsProps> = ({
+const ZoomControls: React.FC<ZoomControlsProps> = React.memo(({
   onZoomIn,
   onZoomOut,
   onReset,
@@ -73,6 +73,8 @@ const ZoomControls: React.FC<ZoomControlsProps> = ({
       )}
     </div>
   );
-};
+});
+
+ZoomControls.displayName = 'ZoomControls';
 
 export default ZoomControls;

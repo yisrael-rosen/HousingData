@@ -9,7 +9,7 @@ interface ChartTypeSwitcherProps {
   language: 'he' | 'en';
 }
 
-const ChartTypeSwitcher: React.FC<ChartTypeSwitcherProps> = ({
+const ChartTypeSwitcher: React.FC<ChartTypeSwitcherProps> = React.memo(({
   currentType,
   onTypeChange,
   language,
@@ -44,6 +44,8 @@ const ChartTypeSwitcher: React.FC<ChartTypeSwitcherProps> = ({
       ))}
     </div>
   );
-};
+});
+
+ChartTypeSwitcher.displayName = 'ChartTypeSwitcher';
 
 export default ChartTypeSwitcher;

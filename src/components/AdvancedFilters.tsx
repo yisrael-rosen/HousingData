@@ -31,7 +31,7 @@ interface AdvancedFiltersProps {
   currentFilters?: FilterConfig;
 }
 
-const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
+const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
   isOpen,
   onClose,
   language,
@@ -309,6 +309,8 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       </div>
     </div>
   );
-};
+});
+
+AdvancedFilters.displayName = 'AdvancedFilters';
 
 export default AdvancedFilters;

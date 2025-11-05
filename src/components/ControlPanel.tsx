@@ -15,7 +15,7 @@ interface ControlPanelProps {
   onOpenComparison?: () => void;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({
+const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
   language,
   onLanguageChange,
   chartRef,
@@ -210,6 +210,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </div>
     </div>
   );
-};
+});
+
+ControlPanel.displayName = 'ControlPanel';
 
 export default ControlPanel;

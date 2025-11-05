@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { GitCompare, X, Plus, Trash2 } from 'lucide-react';
 import { DataPoint } from '../types/ChartTypes';
 
@@ -10,7 +10,7 @@ interface ComparisonModeProps {
   availableSeries: Array<{ key: string; name: string; color: string }>;
 }
 
-const ComparisonMode: React.FC<ComparisonModeProps> = ({
+const ComparisonMode: React.FC<ComparisonModeProps> = React.memo(({
   isOpen,
   onClose,
   language,
@@ -18,23 +18,31 @@ const ComparisonMode: React.FC<ComparisonModeProps> = ({
   availableSeries,
 }) => {
   const [selectedYears, setSelectedYears] = useState<number[]>([]);
-  const availableYears = data.map(d => d.year).sort((a, b) => a - b);
 
-  const handleAddYear = (year: number) => {
-    if (!selectedYears.includes(year) && selectedYears.length < 4) {
-      setSelectedYears([...selectedYears, year]);
-    }
-  };
+  // Memoize available years calculation
+  const availableYears = useMemo(() =>
+    data.map(d => d.year).sort((a, b) => a - b),
+    [data]
+  );
 
-  const handleRemoveYear = (year: number) => {
-    setSelectedYears(selectedYears.filter(y => y !== year));
-  };
+  const handleAddYear = useCallback((year: number) => {
+    setSelectedYears(prev => {
+      if (!prev.includes(year) && prev.length < 4) {
+        return [...prev, year];
+      }
+      return prev;
+    });
+  }, []);
 
-  const getYearData = (year: number) => {
+  const handleRemoveYear = useCallback((year: number) => {
+    setSelectedYears(prev => prev.filter(y => y !== year));
+  }, []);
+
+  const getYearData = useCallback((year: number) => {
     return data.find(d => d.year === year);
-  };
+  }, [data]);
 
-  const calculateDifference = (year1Data: DataPoint | undefined, year2Data: DataPoint | undefined, seriesKey: string) => {
+  const calculateDifference = useCallback((year1Data: DataPoint | undefined, year2Data: DataPoint | undefined, seriesKey: string) => {
     if (!year1Data || !year2Data) return null;
     const val1 = year1Data[seriesKey] as number;
     const val2 = year2Data[seriesKey] as number;
@@ -43,7 +51,7 @@ const ComparisonMode: React.FC<ComparisonModeProps> = ({
     const diff = val2 - val1;
     const percentChange = val1 !== 0 ? (diff / val1) * 100 : 0;
     return { diff, percentChange };
-  };
+  }, []);
 
   if (!isOpen) return null;
 
@@ -223,6 +231,8 @@ const ComparisonMode: React.FC<ComparisonModeProps> = ({
       </div>
     </div>
   );
-};
+});
+
+ComparisonMode.displayName = 'ComparisonMode';
 
 export default ComparisonMode;
