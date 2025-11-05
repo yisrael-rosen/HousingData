@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Filter, X, Calendar, TrendingUp, RotateCcw } from 'lucide-react';
+import { Filter, X, Calendar, RotateCcw } from 'lucide-react';
 import { DataPoint } from '../types/ChartTypes';
 
 interface FilterConfig {
@@ -96,16 +96,6 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           ...prev.valueFilters[series],
           enabled: !prev.valueFilters[series]?.enabled,
         },
-      },
-    }));
-  };
-
-  const handleChangeFilterToggle = () => {
-    setFilters(prev => ({
-      ...prev,
-      changeFilter: {
-        ...prev.changeFilter,
-        enabled: !prev.changeFilter.enabled,
       },
     }));
   };

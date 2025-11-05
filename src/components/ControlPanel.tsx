@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, Globe, Download, Settings, FileText, Image } from 'lucide-react';
+import { Moon, Sun, Globe, Download, Settings, FileText, Image, Filter } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { exportToPNG, exportToCSV } from '../utils/exportUtils';
 import { ChartConfig, DataPoint } from '../types/ChartTypes';
@@ -11,6 +11,7 @@ interface ControlPanelProps {
   chartData?: DataPoint[];
   chartConfig?: ChartConfig;
   settingsRef?: React.RefObject<HTMLButtonElement>;
+  onOpenFilters?: () => void;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -19,7 +20,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   chartRef,
   chartData,
   chartConfig,
-  settingsRef
+  settingsRef,
+  onOpenFilters
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -141,6 +143,18 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
       </div>
 
       <div className="flex items-center gap-2 flex-wrap">
+        {/* Filters Button */}
+        {onOpenFilters && (
+          <button
+            onClick={onOpenFilters}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2"
+            aria-label={language === 'he' ? 'פתח סינונים' : 'Open filters'}
+          >
+            <Filter className="w-4 h-4" aria-hidden="true" />
+            <span className="text-sm hidden sm:inline">{language === 'he' ? 'סינונים' : 'Filters'}</span>
+          </button>
+        )}
+
         {/* Export Menu */}
         <div className="relative" ref={exportRef}>
           <button
