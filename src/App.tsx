@@ -1,15 +1,20 @@
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import EnhancedHousingChart from './components/EnhancedHousingChart';
+import React, { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ControlPanel from './components/ControlPanel';
 import SkeletonLoader from './components/SkeletonLoader';
-import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
-import AdvancedFilters from './components/AdvancedFilters';
 import { defaultConfig, defaultData } from './data/defaultData';
 import { ChartConfig } from './types/ChartTypes';
 import { useTheme } from './contexts/ThemeContext';
 import { useGlobalShortcuts } from './hooks/useKeyboardNavigation';
+import { useLocalStorage } from './hooks/useLocalStorage';
 import { exportToPNG, exportToCSV } from './utils/exportUtils';
+
+// Lazy load heavy components
+const EnhancedHousingChart = lazy(() => import('./components/EnhancedHousingChart'));
+const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
+const AdvancedFilters = lazy(() => import('./components/AdvancedFilters'));
+const ComparisonMode = lazy(() => import('./components/ComparisonMode'));
+const TableView = lazy(() => import('./components/TableView'));
 
 interface FilterConfig {
   yearRange: { min: number; max: number };
@@ -18,11 +23,9 @@ interface FilterConfig {
 }
 
 const App: React.FC = () => {
-  const [config, setConfig] = useState<ChartConfig>(defaultConfig);
-  const [loading, setLoading] = useState(true);
-  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<FilterConfig>({
+  // Use localStorage to persist user preferences
+  const [config, setConfig] = useLocalStorage<ChartConfig>('housing-chart-config', defaultConfig);
+  const [filters, setFilters] = useLocalStorage<FilterConfig>('housing-chart-filters', {
     yearRange: {
       min: Math.min(...defaultData.map(d => d.year)),
       max: Math.max(...defaultData.map(d => d.year)),
@@ -30,6 +33,13 @@ const App: React.FC = () => {
     valueFilters: {},
     changeFilter: { enabled: false },
   });
+  const [animationsEnabled, setAnimationsEnabled] = useLocalStorage('housing-chart-animations', true);
+
+  const [loading, setLoading] = useState(true);
+  const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [showTableView, setShowTableView] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLButtonElement>(null);
   const { toggleTheme } = useTheme();
@@ -107,12 +117,24 @@ const App: React.FC = () => {
     setFilters(newFilters);
   }, []);
 
+  const handleToggleAnimations = useCallback(() => {
+    setAnimationsEnabled(prev => !prev);
+    setConfig(prev => ({
+      ...prev,
+      appearance: {
+        ...prev.appearance,
+        animation: !animationsEnabled,
+      },
+    }));
+  }, [animationsEnabled, setConfig, setAnimationsEnabled]);
+
   const availableSeries = useMemo(() => {
     return Object.entries(config.seriesTypes)
       .filter(([, seriesConfig]) => seriesConfig.visible !== false)
       .map(([key, seriesConfig]) => ({
         key,
         name: seriesConfig.name,
+        color: seriesConfig.color,
       }));
   }, [config.seriesTypes]);
 
@@ -147,19 +169,25 @@ const App: React.FC = () => {
             chartConfig={config}
             settingsRef={settingsRef}
             onOpenFilters={() => setShowFilters(true)}
+            onOpenComparison={() => setShowComparison(true)}
+            onOpenTableView={() => setShowTableView(true)}
+            animationsEnabled={animationsEnabled}
+            onToggleAnimations={handleToggleAnimations}
           />
 
           <ErrorBoundary>
             {loading ? (
               <SkeletonLoader />
             ) : (
-              <EnhancedHousingChart
-                configData={config}
-                chartData={filteredData}
-                onSeriesClick={handleSeriesClick}
-                onYearClick={handleYearClick}
-                loading={loading}
-              />
+              <Suspense fallback={<SkeletonLoader />}>
+                <EnhancedHousingChart
+                  configData={config}
+                  chartData={filteredData}
+                  onSeriesClick={handleSeriesClick}
+                  onYearClick={handleYearClick}
+                  loading={loading}
+                />
+              </Suspense>
             )}
           </ErrorBoundary>
         </div>
@@ -175,22 +203,57 @@ const App: React.FC = () => {
       </div>
 
       {/* Keyboard Shortcuts Help Modal */}
-      <KeyboardShortcutsHelp
-        isOpen={showKeyboardHelp}
-        onClose={() => setShowKeyboardHelp(false)}
-        language={config.metadata.language || 'he'}
-      />
+      {showKeyboardHelp && (
+        <Suspense fallback={null}>
+          <KeyboardShortcutsHelp
+            isOpen={showKeyboardHelp}
+            onClose={() => setShowKeyboardHelp(false)}
+            language={config.metadata.language || 'he'}
+          />
+        </Suspense>
+      )}
 
       {/* Advanced Filters Modal */}
-      <AdvancedFilters
-        isOpen={showFilters}
-        onClose={() => setShowFilters(false)}
-        language={config.metadata.language || 'he'}
-        data={defaultData}
-        availableSeries={availableSeries}
-        onApplyFilters={handleApplyFilters}
-        currentFilters={filters}
-      />
+      {showFilters && (
+        <Suspense fallback={null}>
+          <AdvancedFilters
+            isOpen={showFilters}
+            onClose={() => setShowFilters(false)}
+            language={config.metadata.language || 'he'}
+            data={defaultData}
+            availableSeries={availableSeries}
+            onApplyFilters={handleApplyFilters}
+            currentFilters={filters}
+          />
+        </Suspense>
+      )}
+
+      {/* Comparison Mode Modal */}
+      {showComparison && (
+        <Suspense fallback={null}>
+          <ComparisonMode
+            isOpen={showComparison}
+            onClose={() => setShowComparison(false)}
+            language={config.metadata.language || 'he'}
+            data={filteredData}
+            availableSeries={availableSeries}
+          />
+        </Suspense>
+      )}
+
+      {/* Table View Modal */}
+      {showTableView && (
+        <Suspense fallback={null}>
+          <TableView
+            isOpen={showTableView}
+            onClose={() => setShowTableView(false)}
+            language={config.metadata.language || 'he'}
+            data={filteredData}
+            availableSeries={availableSeries}
+            config={config}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
