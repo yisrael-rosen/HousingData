@@ -7,6 +7,10 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   }
 
+  body {
+    @apply transition-colors duration-300;
+  }
+
   /* RTL Support for Recharts Components */
   [dir="rtl"] .recharts-wrapper {
     direction: ltr;
@@ -20,24 +24,24 @@
     direction: rtl;
   }
 
-  /* Custom Scrollbar */
+  /* Custom Scrollbar - Light Mode */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    @apply bg-gray-100 dark:bg-gray-800;
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #888;
+    @apply bg-gray-400 dark:bg-gray-600;
     border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: #666;
+    @apply bg-gray-500 dark:bg-gray-500;
   }
 }
 
@@ -81,11 +85,26 @@
   stroke-dasharray: 3 3;
 }
 
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: #374151;
+}
+
 /* Axis Styling */
 .recharts-xAxis .recharts-cartesian-axis-tick-value,
 .recharts-yAxis .recharts-cartesian-axis-tick-value {
   fill: #6b7280;
   font-size: 12px;
+}
+
+.dark .recharts-xAxis .recharts-cartesian-axis-tick-value,
+.dark .recharts-yAxis .recharts-cartesian-axis-tick-value {
+  fill: #9ca3af;
+}
+
+/* Legend styling for dark mode */
+.dark .recharts-legend-item-text {
+  color: #e5e7eb !important;
 }
 
 /* Bar Chart Hover Effect */

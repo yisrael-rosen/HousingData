@@ -65,14 +65,15 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
   return (
     <div
       dir={direction}
-      className={`w-full p-6 ${className} ${loading ? 'opacity-50' : ''}`}
+      className={`w-full p-4 sm:p-6 ${className} ${loading ? 'opacity-50' : ''} transition-all duration-300`}
       role="region"
       aria-label={metadata.title}
     >
-      <h2 className="text-2xl font-bold text-center mb-8" id="chart-title">{metadata.title}</h2>
-      
+      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-800 dark:text-gray-100 transition-colors" id="chart-title">{metadata.title}</h2>
+
       <div
-        style={{ height: appearance?.height ? `${appearance.height * 0.25}rem` : '24rem' }}
+        className="w-full"
+        style={{ height: appearance?.height ? `${appearance.height * 0.25}rem` : 'clamp(20rem, 60vh, 30rem)' }}
         role="img"
         aria-labelledby="chart-title"
         aria-describedby={metadata.footnote ? "chart-footnote" : undefined}
@@ -163,7 +164,7 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
       </div>
 
       {metadata.footnote && (
-        <div className="text-sm text-gray-600 text-center mt-4" id="chart-footnote">
+        <div className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center mt-4 transition-colors" id="chart-footnote">
           {metadata.footnote}
         </div>
       )}

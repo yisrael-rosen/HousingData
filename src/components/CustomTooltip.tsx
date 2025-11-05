@@ -82,18 +82,20 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   const totalValue = calculateTotal(currentData, seriesTypes);
 
   return (
-    <div 
+    <div
       ref={tooltipRef}
-      className={`bg-white p-4 border border-gray-200 shadow-lg rounded-lg min-w-[280px] transition-all duration-200 ease-in-out`}
+      className={`bg-white dark:bg-gray-800 p-4 border border-gray-200 dark:border-gray-700 shadow-xl rounded-xl min-w-[280px] transition-all duration-200 ease-in-out backdrop-blur-sm`}
       dir={direction}
-      style={{ 
+      style={{
         direction,
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
         position: 'fixed',
         pointerEvents: 'none'
       }}
+      role="tooltip"
+      aria-live="polite"
     >
-      <div className="font-bold mb-4 border-b pb-3 text-xl bg-gray-50 -mx-4 -mt-4 p-4 rounded-t-lg">
+      <div className="font-bold mb-4 border-b border-gray-200 dark:border-gray-700 pb-3 text-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-700 text-gray-800 dark:text-gray-100 -mx-4 -mt-4 p-4 rounded-t-xl">
         {language === 'he' ? `שנת ${label}` : `Year ${label}`}
       </div>
       
@@ -110,39 +112,40 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
           (value / totalValue) * 100 : null;
 
         return (
-          <div 
-            key={index} 
-            className={`py-3 ${index !== payload.length - 1 ? 'border-b' : ''} hover:bg-gray-50 transition-colors duration-150 rounded-md`}
+          <div
+            key={index}
+            className={`py-3 ${index !== payload.length - 1 ? 'border-b border-gray-200 dark:border-gray-700' : ''} hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 rounded-md px-2`}
           >
-            <div className="font-semibold flex items-center gap-3">
-              <div 
-                className="w-4 h-4 rounded-full shadow-sm" 
+            <div className="font-semibold flex items-center gap-3 text-gray-800 dark:text-gray-200">
+              <div
+                className="w-4 h-4 rounded-full shadow-sm ring-2 ring-white dark:ring-gray-800"
                 style={{ backgroundColor: seriesConfig.color }}
+                aria-hidden="true"
               />
               {seriesConfig.name}
             </div>
-            
+
             {seriesConfig.description && (
-              <div className="text-sm text-gray-600 mt-1">
+              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {seriesConfig.description}
               </div>
             )}
 
             <div className="flex items-center gap-3 mt-2">
-              <span className="font-medium text-lg">
+              <span className="font-medium text-lg text-gray-900 dark:text-gray-100">
                 {formatNumber(value, seriesConfig.tooltipConfig, language === 'he' ? 'he-IL' : 'en-US')}
               </span>
               {seriesConfig.showChange && change && seriesConfig.changeConfig && (
-                <ChangeIndicator 
-                  value={change} 
+                <ChangeIndicator
+                  value={change}
                   config={seriesConfig.changeConfig}
                 />
               )}
             </div>
 
             {seriesConfig.tooltipConfig.showChangeFromPrevious && change && (
-              <div className="text-sm bg-blue-50 px-3 py-1 rounded-lg mt-2">
-                {language === 'he' ? 
+              <div className="text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 px-3 py-1 rounded-lg mt-2">
+                {language === 'he' ?
                   `שינוי משנה קודמת: ${formatNumber(Math.abs(change), seriesConfig.tooltipConfig)} ${change > 0 ? 'יותר' : 'פחות'}` :
                   `Change from previous year: ${change > 0 ? '+' : '-'}${formatNumber(Math.abs(change), seriesConfig.tooltipConfig)}`
                 }
@@ -150,8 +153,8 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
             )}
 
             {seriesConfig.tooltipConfig.showPercentOfTotal && percentOfTotal !== null && (
-              <div className="text-sm bg-gray-100 px-3 py-1 rounded-full mt-2 font-medium">
-                {language === 'he' ? 
+              <div className="text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-full mt-2 font-medium">
+                {language === 'he' ?
                   `${percentOfTotal.toFixed(1)}% מהסך הכל` :
                   `${percentOfTotal.toFixed(1)}% of total`
                 }
@@ -159,8 +162,8 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
             )}
 
             {seriesConfig.tooltipConfig.showGapFromActual && seriesConfig.type === 'line' && (
-              <div className="text-sm bg-gray-50 px-3 py-1 rounded-lg mt-2">
-                {language === 'he' ? 
+              <div className="text-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-3 py-1 rounded-lg mt-2">
+                {language === 'he' ?
                   `פער מהיעד: ${formatNumber(Math.abs(totalValue - value), seriesConfig.tooltipConfig)}` :
                   `Gap from target: ${formatNumber(Math.abs(totalValue - value), seriesConfig.tooltipConfig)}`
                 }
