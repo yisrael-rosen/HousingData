@@ -1,16 +1,18 @@
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import EnhancedHousingChart from './components/EnhancedHousingChart';
+import React, { useState, useCallback, useRef, useEffect, useMemo, lazy, Suspense } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ControlPanel from './components/ControlPanel';
 import SkeletonLoader from './components/SkeletonLoader';
-import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
-import AdvancedFilters from './components/AdvancedFilters';
-import ComparisonMode from './components/ComparisonMode';
 import { defaultConfig, defaultData } from './data/defaultData';
 import { ChartConfig } from './types/ChartTypes';
 import { useTheme } from './contexts/ThemeContext';
 import { useGlobalShortcuts } from './hooks/useKeyboardNavigation';
 import { exportToPNG, exportToCSV } from './utils/exportUtils';
+
+// Lazy load heavy components
+const EnhancedHousingChart = lazy(() => import('./components/EnhancedHousingChart'));
+const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
+const AdvancedFilters = lazy(() => import('./components/AdvancedFilters'));
+const ComparisonMode = lazy(() => import('./components/ComparisonMode'));
 
 interface FilterConfig {
   yearRange: { min: number; max: number };
@@ -157,13 +159,15 @@ const App: React.FC = () => {
             {loading ? (
               <SkeletonLoader />
             ) : (
-              <EnhancedHousingChart
-                configData={config}
-                chartData={filteredData}
-                onSeriesClick={handleSeriesClick}
-                onYearClick={handleYearClick}
-                loading={loading}
-              />
+              <Suspense fallback={<SkeletonLoader />}>
+                <EnhancedHousingChart
+                  configData={config}
+                  chartData={filteredData}
+                  onSeriesClick={handleSeriesClick}
+                  onYearClick={handleYearClick}
+                  loading={loading}
+                />
+              </Suspense>
             )}
           </ErrorBoundary>
         </div>
@@ -179,31 +183,43 @@ const App: React.FC = () => {
       </div>
 
       {/* Keyboard Shortcuts Help Modal */}
-      <KeyboardShortcutsHelp
-        isOpen={showKeyboardHelp}
-        onClose={() => setShowKeyboardHelp(false)}
-        language={config.metadata.language || 'he'}
-      />
+      {showKeyboardHelp && (
+        <Suspense fallback={null}>
+          <KeyboardShortcutsHelp
+            isOpen={showKeyboardHelp}
+            onClose={() => setShowKeyboardHelp(false)}
+            language={config.metadata.language || 'he'}
+          />
+        </Suspense>
+      )}
 
       {/* Advanced Filters Modal */}
-      <AdvancedFilters
-        isOpen={showFilters}
-        onClose={() => setShowFilters(false)}
-        language={config.metadata.language || 'he'}
-        data={defaultData}
-        availableSeries={availableSeries}
-        onApplyFilters={handleApplyFilters}
-        currentFilters={filters}
-      />
+      {showFilters && (
+        <Suspense fallback={null}>
+          <AdvancedFilters
+            isOpen={showFilters}
+            onClose={() => setShowFilters(false)}
+            language={config.metadata.language || 'he'}
+            data={defaultData}
+            availableSeries={availableSeries}
+            onApplyFilters={handleApplyFilters}
+            currentFilters={filters}
+          />
+        </Suspense>
+      )}
 
       {/* Comparison Mode Modal */}
-      <ComparisonMode
-        isOpen={showComparison}
-        onClose={() => setShowComparison(false)}
-        language={config.metadata.language || 'he'}
-        data={filteredData}
-        availableSeries={availableSeries}
-      />
+      {showComparison && (
+        <Suspense fallback={null}>
+          <ComparisonMode
+            isOpen={showComparison}
+            onClose={() => setShowComparison(false)}
+            language={config.metadata.language || 'he'}
+            data={filteredData}
+            availableSeries={availableSeries}
+          />
+        </Suspense>
+      )}
     </div>
   );
 };
