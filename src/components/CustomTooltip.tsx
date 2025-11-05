@@ -3,7 +3,6 @@ import { TooltipProps } from 'recharts';
 import { TrendingUp, TrendingDown, Percent, Target, Calendar, Activity } from 'lucide-react';
 import { ChartConfig, DataPoint } from '../types/ChartTypes';
 import { calculateChange, formatNumber, calculateTotal } from '../utils/chartUtils';
-import ChangeIndicator from './ChangeIndicator';
 
 interface CustomTooltipProps extends TooltipProps<number, string> {
   config: ChartConfig;
@@ -93,40 +92,34 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   return (
     <div
       ref={tooltipRef}
-      className={`bg-white/95 dark:bg-gray-900/95 p-0 border-2 border-blue-200 dark:border-blue-800 shadow-2xl rounded-2xl min-w-[240px] sm:min-w-[300px] max-w-[90vw] sm:max-w-[360px] backdrop-blur-md overflow-hidden animate-in fade-in zoom-in-95 duration-200`}
+      className={`bg-white dark:bg-gray-800 p-0 border border-gray-300 dark:border-gray-600 shadow-2xl rounded-lg min-w-[260px] sm:min-w-[300px] max-w-[90vw] sm:max-w-[360px] overflow-hidden`}
       dir={direction}
       style={{
         direction,
-        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(59, 130, 246, 0.1)',
+        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
         position: 'fixed',
-        pointerEvents: 'none',
-        animation: 'tooltipFadeIn 0.2s ease-out'
+        pointerEvents: 'none'
       }}
       role="tooltip"
       aria-live="polite"
     >
-      {/* Header with gradient */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 dark:from-blue-600 dark:via-purple-600 dark:to-pink-600 opacity-90"></div>
-        <div className="relative px-4 py-3 sm:py-4">
-          <div className="flex items-center gap-3 text-white">
-            <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-              <Calendar className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="text-xs font-medium opacity-90">
-                {language === 'he' ? 'שנה' : 'Year'}
-              </div>
-              <div className="text-2xl font-bold">
-                {label}
-              </div>
-            </div>
+      {/* Simple Header */}
+      <div className="bg-gray-100 dark:bg-gray-700 px-4 py-3 border-b border-gray-300 dark:border-gray-600">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Calendar className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+              {language === 'he' ? 'שנה' : 'Year'}
+            </span>
           </div>
+          <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            {label}
+          </span>
         </div>
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-4 space-y-3">
+      <div className="p-4 space-y-4">
       
       {payload.map((entry, index) => {
         const seriesConfig = seriesTypes[entry.dataKey as string];
@@ -143,112 +136,97 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
         return (
           <div
             key={index}
-            className="group relative bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-xl p-3 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-lg"
-            style={{
-              borderLeftColor: seriesConfig.color,
-              borderLeftWidth: '4px'
-            }}
+            className={`pb-3 ${index !== payload.length - 1 ? 'border-b border-gray-200 dark:border-gray-700' : ''}`}
           >
-            {/* Series Header */}
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
+            {/* Series Name and Value - Main Info */}
+            <div className="flex items-start justify-between mb-2">
+              <div className="flex items-center gap-2 flex-1">
                 <div
-                  className="w-3 h-3 rounded-full shadow-md animate-pulse"
-                  style={{
-                    backgroundColor: seriesConfig.color,
-                    boxShadow: `0 0 10px ${seriesConfig.color}40`
-                  }}
+                  className="w-3 h-3 rounded-sm flex-shrink-0 mt-1"
+                  style={{ backgroundColor: seriesConfig.color }}
                   aria-hidden="true"
                 />
-                <span className="font-semibold text-sm text-gray-800 dark:text-gray-200">
-                  {seriesConfig.name}
-                </span>
-              </div>
-              <Activity className="w-4 h-4 text-gray-400 dark:text-gray-600" />
-            </div>
-
-            {/* Description */}
-            {seriesConfig.description && (
-              <div className="text-xs text-gray-600 dark:text-gray-400 mb-2 italic">
-                {seriesConfig.description}
-              </div>
-            )}
-
-            {/* Main Value */}
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
-                {formatNumber(value, seriesConfig.tooltipConfig, language === 'he' ? 'he-IL' : 'en-US')}
-              </span>
-              {seriesConfig.showChange && change !== undefined && change !== null && seriesConfig.changeConfig && (
-                <ChangeIndicator
-                  value={change}
-                  config={seriesConfig.changeConfig}
-                />
-              )}
-            </div>
-
-            {/* Change from Previous */}
-            {seriesConfig.tooltipConfig.showChangeFromPrevious && change !== undefined && change !== null && (
-              <div className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg mb-2 ${
-                change > 0
-                  ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400'
-                  : change < 0
-                  ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-                  : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-400'
-              }`}>
-                {change > 0 ? (
-                  <TrendingUp className="w-4 h-4" />
-                ) : change < 0 ? (
-                  <TrendingDown className="w-4 h-4" />
-                ) : (
-                  <Activity className="w-4 h-4" />
-                )}
-                <span className="font-medium">
-                  {language === 'he' ?
-                    `${change > 0 ? '+' : ''}${formatNumber(change, seriesConfig.tooltipConfig)} משנה קודמת` :
-                    `${change > 0 ? '+' : ''}${formatNumber(change, seriesConfig.tooltipConfig)} from previous`
-                  }
-                </span>
-              </div>
-            )}
-
-            {/* Percent of Total with Progress Bar */}
-            {seriesConfig.tooltipConfig.showPercentOfTotal && percentOfTotal !== null && (
-              <div className="mb-2">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                    <Percent className="w-3 h-3" />
-                    <span>{language === 'he' ? 'מתוך הסך הכל' : 'of total'}</span>
+                <div className="flex-1">
+                  <div className="font-semibold text-base text-gray-900 dark:text-gray-100">
+                    {seriesConfig.name}
                   </div>
-                  <span className="font-bold text-purple-600 dark:text-purple-400">
-                    {percentOfTotal.toFixed(1)}%
+                  {seriesConfig.description && (
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                      {seriesConfig.description}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0 mr-1">
+                <div className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  {formatNumber(value, seriesConfig.tooltipConfig, language === 'he' ? 'he-IL' : 'en-US')}
+                </div>
+              </div>
+            </div>
+
+            {/* Secondary Info - Compact */}
+            <div className="space-y-1.5 mr-5">
+              {/* Change from Previous */}
+              {seriesConfig.tooltipConfig.showChangeFromPrevious && change !== undefined && change !== null && (
+                <div className="flex items-center gap-1.5 text-sm">
+                  {change > 0 ? (
+                    <TrendingUp className="w-3.5 h-3.5 text-green-600 dark:text-green-400" />
+                  ) : change < 0 ? (
+                    <TrendingDown className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />
+                  ) : (
+                    <Activity className="w-3.5 h-3.5 text-gray-400" />
+                  )}
+                  <span className={`${
+                    change > 0
+                      ? 'text-green-700 dark:text-green-400'
+                      : change < 0
+                      ? 'text-red-700 dark:text-red-400'
+                      : 'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    {change > 0 ? '+' : ''}{formatNumber(change, seriesConfig.tooltipConfig)}
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400 text-xs">
+                    {language === 'he' ? 'משנה קודמת' : 'vs previous'}
                   </span>
                 </div>
-                {/* Progress Bar */}
-                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-400 dark:to-pink-400 rounded-full transition-all duration-500 ease-out"
-                    style={{
-                      width: `${Math.min(percentOfTotal, 100)}%`,
-                      boxShadow: '0 0 10px rgba(168, 85, 247, 0.4)'
-                    }}
-                  />
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* Gap from Target */}
-            {seriesConfig.tooltipConfig.showGapFromActual && seriesConfig.type === 'line' && (
-              <div className="flex items-center gap-2 text-xs bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400 px-3 py-2 rounded-lg">
-                <Target className="w-4 h-4" />
-                <span>
-                  {language === 'he' ?
-                    `פער: ${formatNumber(Math.abs(totalValue - value), seriesConfig.tooltipConfig)}` :
-                    `Gap: ${formatNumber(Math.abs(totalValue - value), seriesConfig.tooltipConfig)}`
-                  }
-                </span>
-              </div>
-            )}
+              {/* Percent of Total */}
+              {seriesConfig.tooltipConfig.showPercentOfTotal && percentOfTotal !== null && (
+                <div className="flex items-center gap-1.5 text-sm">
+                  <Percent className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">
+                    {percentOfTotal.toFixed(1)}%
+                  </span>
+                  <span className="text-gray-500 dark:text-gray-400 text-xs">
+                    {language === 'he' ? 'מהסך הכל' : 'of total'}
+                  </span>
+                  {/* Simple bar indicator */}
+                  <div className="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden mx-1">
+                    <div
+                      className="h-full rounded-full transition-all duration-300"
+                      style={{
+                        width: `${Math.min(percentOfTotal, 100)}%`,
+                        backgroundColor: seriesConfig.color
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Gap from Target */}
+              {seriesConfig.tooltipConfig.showGapFromActual && seriesConfig.type === 'line' && (
+                <div className="flex items-center gap-1.5 text-sm">
+                  <Target className="w-3.5 h-3.5 text-gray-500 dark:text-gray-400" />
+                  <span className="text-gray-600 dark:text-gray-400 text-xs">
+                    {language === 'he' ? 'פער:' : 'Gap:'}
+                  </span>
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    {formatNumber(Math.abs(totalValue - value), seriesConfig.tooltipConfig)}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
         );
       })}
