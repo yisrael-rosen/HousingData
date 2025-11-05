@@ -1,8 +1,15 @@
 import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import {
   ComposedChart,
+  BarChart,
+  LineChart as RechartsLineChart,
+  AreaChart as RechartsAreaChart,
+  PieChart as RechartsPieChart,
   Line,
   Bar,
+  Area,
+  Pie,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -17,6 +24,7 @@ import { ChartProps } from '../types/ChartTypes';
 import { generateXAxisTicks, generateYAxisTicks } from '../utils/chartUtils';
 import CustomTooltip from './CustomTooltip';
 import ZoomControls from './ZoomControls';
+import ChartTypeSwitcher, { ChartType } from './ChartTypeSwitcher';
 import { defaultConfig, defaultData } from '../data/defaultData';
 
 const EnhancedHousingChart: React.FC<ChartProps> = ({
@@ -30,6 +38,9 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
   const { metadata, seriesTypes, appearance } = configData;
   const direction = metadata.direction || 'rtl';
   const language = metadata.language || 'he';
+
+  // Chart type state
+  const [chartType, setChartType] = useState<ChartType>('composed');
 
   // Zoom and Pan state
   const [xDomain, setXDomain] = useState<[number, number]>([
@@ -198,91 +209,186 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
     }
   }, [handleWheel]);
 
-  return (
-    <div
-      dir={direction}
-      className={`w-full p-4 sm:p-6 ${className} ${loading ? 'opacity-50' : ''} transition-all duration-300`}
-      role="region"
-      aria-label={metadata.title}
-    >
-      <div className="flex items-center justify-between mb-6 sm:mb-8">
-        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 transition-colors" id="chart-title">{metadata.title}</h2>
+  // Prepare data for pie chart
+  const pieData = useMemo(() => {
+    if (chartType !== 'pie') return [];
 
-        <ZoomControls
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onReset={handleReset}
-          onFitToScreen={handleFitToScreen}
-          language={language}
-          isZoomed={isZoomed}
+    // Get the latest year or middle year data
+    const middleIndex = Math.floor(chartData.length / 2);
+    const dataPoint = chartData[middleIndex];
+
+    return sortedSeries.map(([key, config]) => ({
+      name: config.name,
+      value: dataPoint[key] as number || 0,
+      color: config.color,
+    }));
+  }, [chartType, chartData, sortedSeries]);
+
+  // Render the appropriate chart type
+  const renderChart = () => {
+    const commonProps = {
+      data: chartData,
+      margin: { top: 20, right: 30, left: 30, bottom: 10 },
+    };
+
+    const commonAxisProps = (
+      <>
+        <XAxis
+          dataKey="year"
+          type="number"
+          domain={xDomain}
+          ticks={xAxisTicks}
+          onClick={handleYearClick}
+          tickFormatter={(value) => value.toString()}
+          allowDataOverflow
         />
-      </div>
+        <YAxis
+          domain={yDomain || [0, Math.max(...yAxisTicks)]}
+          ticks={yAxisTicks}
+          tickFormatter={(value) => new Intl.NumberFormat(
+            language === 'he' ? 'he-IL' : 'en-US',
+            { notation: 'compact', maximumFractionDigits: 0 }
+          ).format(value)}
+          allowDataOverflow
+        />
+      </>
+    );
 
-      <div
-        ref={chartContainerRef}
-        className={`w-full ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
-        style={{ height: appearance?.height ? `${appearance.height * 0.25}rem` : 'clamp(20rem, 60vh, 30rem)' }}
-        role="img"
-        aria-labelledby="chart-title"
-        aria-describedby={metadata.footnote ? "chart-footnote" : undefined}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-      >
-        <ResponsiveContainer>
-          <ComposedChart
-            data={chartData}
-            margin={{ top: 20, right: 30, left: 30, bottom: 10 }}
-            aria-label={`${metadata.title} - ${language === 'he' ? 'תרשים עמודות וקווים' : 'Bar and line chart'}`}
-          >
-            {appearance?.gridLines !== false && (
-              <CartesianGrid strokeDasharray="3 3" />
-            )}
-            
-            <XAxis
-              dataKey="year"
-              type="number"
-              domain={xDomain}
-              ticks={xAxisTicks}
-              onClick={handleYearClick}
-              tickFormatter={(value) => value.toString()}
-              allowDataOverflow
+    const commonElements = (
+      <>
+        {appearance?.gridLines !== false && (
+          <CartesianGrid strokeDasharray="3 3" />
+        )}
+        {commonAxisProps}
+        <Tooltip
+          content={
+            <CustomTooltip
+              config={configData}
+              data={chartData}
             />
+          }
+        />
+        <Legend
+          verticalAlign="bottom"
+          height={60}
+          onClick={handleSeriesClick}
+          formatter={(value) => seriesTypes[value as string]?.name || value}
+          wrapperStyle={{
+            paddingTop: '20px',
+            borderTop: '1px solid #eee'
+          }}
+          iconSize={12}
+          iconType="circle"
+        />
+      </>
+    );
 
-            <YAxis
-              domain={yDomain || [0, Math.max(...yAxisTicks)]}
-              ticks={yAxisTicks}
-              tickFormatter={(value) => new Intl.NumberFormat(
-                language === 'he' ? 'he-IL' : 'en-US',
-                { notation: 'compact', maximumFractionDigits: 0 }
-              ).format(value)}
-              allowDataOverflow
-            />
-            
+    switch (chartType) {
+      case 'bar':
+        return (
+          <BarChart {...commonProps}>
+            {commonElements}
+            {sortedSeries.map(([key, config]) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={config.color}
+                stackId={config.stack || undefined}
+                name={key}
+                barSize={appearance?.barSize || 20}
+                opacity={config.opacity}
+                isAnimationActive={appearance?.animation !== false}
+                cursor="pointer"
+                className="transition-opacity duration-200 hover:opacity-80"
+              />
+            ))}
+          </BarChart>
+        );
+
+      case 'line':
+        return (
+          <RechartsLineChart {...commonProps}>
+            {commonElements}
+            {sortedSeries.map(([key, config]) => (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={config.color}
+                strokeWidth={2}
+                dot={{ fill: config.color }}
+                name={key}
+                strokeDasharray={config.dashArray}
+                opacity={config.opacity}
+                isAnimationActive={appearance?.animation !== false}
+                activeDot={{ r: 6, strokeWidth: 2 }}
+                className="transition-opacity duration-200 hover:opacity-80"
+              />
+            ))}
+          </RechartsLineChart>
+        );
+
+      case 'area':
+        return (
+          <RechartsAreaChart {...commonProps}>
+            {commonElements}
+            {sortedSeries.map(([key, config]) => (
+              <Area
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={config.color}
+                fill={config.color}
+                fillOpacity={0.6}
+                name={key}
+                opacity={config.opacity}
+                isAnimationActive={appearance?.animation !== false}
+                className="transition-opacity duration-200 hover:opacity-80"
+              />
+            ))}
+          </RechartsAreaChart>
+        );
+
+      case 'pie':
+        return (
+          <RechartsPieChart>
+            <Pie
+              data={pieData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              outerRadius={150}
+              fill="#8884d8"
+              dataKey="value"
+              isAnimationActive={appearance?.animation !== false}
+            >
+              {pieData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
             <Tooltip
               content={
-                <CustomTooltip 
+                <CustomTooltip
                   config={configData}
                   data={chartData}
                 />
               }
             />
-            
             <Legend
               verticalAlign="bottom"
               height={60}
-              onClick={handleSeriesClick}
-              formatter={(value) => seriesTypes[value as string]?.name || value}
-              wrapperStyle={{
-                paddingTop: '20px',
-                borderTop: '1px solid #eee'
-              }}
-              iconSize={12}
-              iconType="circle"
+              formatter={(value) => value}
             />
-            
-            {sortedSeries.map(([key, config]) => 
+          </RechartsPieChart>
+        );
+
+      case 'composed':
+      default:
+        return (
+          <ComposedChart {...commonProps}>
+            {commonElements}
+            {sortedSeries.map(([key, config]) =>
               config.type === 'bar' ? (
                 <Bar
                   key={key}
@@ -314,6 +420,54 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
               )
             )}
           </ComposedChart>
+        );
+    }
+  };
+
+  return (
+    <div
+      dir={direction}
+      className={`w-full p-4 sm:p-6 ${className} ${loading ? 'opacity-50' : ''} transition-all duration-300`}
+      role="region"
+      aria-label={metadata.title}
+    >
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 transition-colors" id="chart-title">{metadata.title}</h2>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <ChartTypeSwitcher
+            currentType={chartType}
+            onTypeChange={setChartType}
+            language={language}
+          />
+
+          {chartType !== 'pie' && (
+            <ZoomControls
+              onZoomIn={handleZoomIn}
+              onZoomOut={handleZoomOut}
+              onReset={handleReset}
+              onFitToScreen={handleFitToScreen}
+              language={language}
+              isZoomed={isZoomed}
+            />
+          )}
+        </div>
+      </div>
+
+      <div
+        ref={chartContainerRef}
+        className={`w-full ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
+        style={{ height: appearance?.height ? `${appearance.height * 0.25}rem` : 'clamp(20rem, 60vh, 30rem)' }}
+        role="img"
+        aria-labelledby="chart-title"
+        aria-describedby={metadata.footnote ? "chart-footnote" : undefined}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
+      >
+        <ResponsiveContainer>
+          {renderChart()}
         </ResponsiveContainer>
       </div>
 
