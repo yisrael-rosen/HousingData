@@ -34,7 +34,14 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
 
     const chartRect = chartContainer.getBoundingClientRect();
 
-    // Default positioning - center in viewport
+    // Calculate available space
+    const availableHeight = viewportHeight - 40; // 20px margin top and bottom
+    const maxTooltipHeight = Math.min(availableHeight, 600); // Max 600px or available space
+
+    // Set max height to prevent overflow
+    tooltip.style.maxHeight = `${maxTooltipHeight}px`;
+
+    // Default positioning - use current position
     let left = tooltipRect.left;
     let top = tooltipRect.top;
 
@@ -52,7 +59,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
     // Adjust vertical position if tooltip overflows
     if (top + tooltipRect.height > viewportHeight - 20) {
       // Move tooltip up
-      top = viewportHeight - tooltipRect.height - 20;
+      top = Math.max(20, viewportHeight - tooltipRect.height - 20);
     }
 
     if (top < 20) {
@@ -61,11 +68,11 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
     }
 
     // Keep tooltip within chart bounds when possible
-    if (left < chartRect.left) {
+    if (left < chartRect.left && chartRect.left + tooltipRect.width < viewportWidth - 20) {
       left = Math.max(20, chartRect.left + 10);
     }
 
-    if (left + tooltipRect.width > chartRect.right) {
+    if (left + tooltipRect.width > chartRect.right && chartRect.right - tooltipRect.width > 20) {
       left = Math.max(20, chartRect.right - tooltipRect.width - 10);
     }
 
@@ -74,7 +81,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
     tooltip.style.left = `${left}px`;
     tooltip.style.top = `${top}px`;
     tooltip.style.zIndex = '1000';
-    tooltip.style.maxWidth = `${Math.min(320, viewportWidth - 40)}px`;
+    tooltip.style.maxWidth = `${Math.min(360, viewportWidth - 40)}px`;
   }, [active, payload, label]);
 
   if (!active || !payload || !payload.length) return null;
@@ -118,8 +125,8 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4 space-y-4">
+      {/* Content - Scrollable if needed */}
+      <div className="p-4 space-y-4 overflow-y-auto max-h-[500px]">
       
       {payload.map((entry, index) => {
         const seriesConfig = seriesTypes[entry.dataKey as string];
