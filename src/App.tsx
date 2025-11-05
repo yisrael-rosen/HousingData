@@ -33,6 +33,7 @@ const App: React.FC = () => {
     valueFilters: {},
     changeFilter: { enabled: false },
   });
+  const [animationsEnabled, setAnimationsEnabled] = useLocalStorage('housing-chart-animations', true);
 
   const [loading, setLoading] = useState(true);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
@@ -116,6 +117,17 @@ const App: React.FC = () => {
     setFilters(newFilters);
   }, []);
 
+  const handleToggleAnimations = useCallback(() => {
+    setAnimationsEnabled(prev => !prev);
+    setConfig(prev => ({
+      ...prev,
+      appearance: {
+        ...prev.appearance,
+        animation: !animationsEnabled,
+      },
+    }));
+  }, [animationsEnabled, setConfig, setAnimationsEnabled]);
+
   const availableSeries = useMemo(() => {
     return Object.entries(config.seriesTypes)
       .filter(([, seriesConfig]) => seriesConfig.visible !== false)
@@ -159,6 +171,8 @@ const App: React.FC = () => {
             onOpenFilters={() => setShowFilters(true)}
             onOpenComparison={() => setShowComparison(true)}
             onOpenTableView={() => setShowTableView(true)}
+            animationsEnabled={animationsEnabled}
+            onToggleAnimations={handleToggleAnimations}
           />
 
           <ErrorBoundary>

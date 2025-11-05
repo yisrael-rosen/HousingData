@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, Globe, Download, Settings, FileText, Image, Filter, GitCompare, Table2 } from 'lucide-react';
+import { Moon, Sun, Globe, Download, Settings, FileText, Image, Filter, GitCompare, Table2, Activity } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { exportToPNG, exportToCSV } from '../utils/exportUtils';
 import { ChartConfig, DataPoint } from '../types/ChartTypes';
@@ -14,6 +14,8 @@ interface ControlPanelProps {
   onOpenFilters?: () => void;
   onOpenComparison?: () => void;
   onOpenTableView?: () => void;
+  animationsEnabled?: boolean;
+  onToggleAnimations?: () => void;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
@@ -25,7 +27,9 @@ const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
   settingsRef,
   onOpenFilters,
   onOpenComparison,
-  onOpenTableView
+  onOpenTableView,
+  animationsEnabled = true,
+  onToggleAnimations
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -124,7 +128,7 @@ const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
             </div>
 
             {/* Language Setting */}
-            <div className="p-3">
+            <div className="p-3 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                   {language === 'he' ? 'שפה' : 'Language'}
@@ -142,6 +146,33 @@ const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
                 <span className="text-sm">{language === 'he' ? 'Switch to English' : 'עבור לעברית'}</span>
               </button>
             </div>
+
+            {/* Animation Setting */}
+            {onToggleAnimations && (
+              <div className="p-3">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                    {language === 'he' ? 'אנימציות' : 'Animations'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    onToggleAnimations();
+                    setShowSettingsMenu(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  role="menuitem"
+                >
+                  <Activity className="w-4 h-4" aria-hidden="true" />
+                  <span className="text-sm">
+                    {animationsEnabled
+                      ? (language === 'he' ? 'בטל אנימציות' : 'Disable Animations')
+                      : (language === 'he' ? 'אפשר אנימציות' : 'Enable Animations')
+                    }
+                  </span>
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
