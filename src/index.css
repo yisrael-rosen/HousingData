@@ -55,6 +55,27 @@
   }
 }
 
+/* Tooltip Animations */
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
 .recharts-responsive-container {
   animation: fadeIn 0.3s ease-in-out;
 }
