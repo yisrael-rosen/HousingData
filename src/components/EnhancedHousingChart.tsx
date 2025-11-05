@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useRef, useCallback, useEffect } from 'react';
 import {
   ComposedChart,
   Line,
@@ -16,6 +16,7 @@ import { Payload } from 'recharts/types/component/DefaultLegendContent';
 import { ChartProps } from '../types/ChartTypes';
 import { generateXAxisTicks, generateYAxisTicks } from '../utils/chartUtils';
 import CustomTooltip from './CustomTooltip';
+import ZoomControls from './ZoomControls';
 import { defaultConfig, defaultData } from '../data/defaultData';
 
 const EnhancedHousingChart: React.FC<ChartProps> = ({
@@ -30,6 +31,22 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
   const direction = metadata.direction || 'rtl';
   const language = metadata.language || 'he';
 
+  // Zoom and Pan state
+  const [xDomain, setXDomain] = useState<[number, number]>([
+    metadata.yearRange.start,
+    metadata.yearRange.end,
+  ]);
+  const [yDomain, setYDomain] = useState<[number, number] | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number } | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
+
+  // Reset domains when data changes
+  useEffect(() => {
+    setXDomain([metadata.yearRange.start, metadata.yearRange.end]);
+    setYDomain(null);
+  }, [metadata.yearRange, chartData]);
+
   // Sort series by stack order
   const sortedSeries = useMemo(() => {
     return Object.entries(seriesTypes)
@@ -37,16 +54,25 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
       .sort(([, a], [, b]) => (a.stackOrder ?? Infinity) - (b.stackOrder ?? Infinity));
   }, [seriesTypes]);
 
-  // Generate axis ticks
-  const xAxisTicks = useMemo(() => 
-    generateXAxisTicks(metadata.yearRange.start, metadata.yearRange.end),
-    [metadata.yearRange]
+  // Generate axis ticks based on current zoom
+  const xAxisTicks = useMemo(() =>
+    generateXAxisTicks(xDomain[0], xDomain[1]),
+    [xDomain]
   );
 
-  const yAxisTicks = useMemo(() => 
+  const yAxisTicks = useMemo(() =>
     generateYAxisTicks(chartData, seriesTypes),
     [chartData, seriesTypes]
   );
+
+  // Calculate if currently zoomed
+  const isZoomed = useMemo(() => {
+    return (
+      xDomain[0] !== metadata.yearRange.start ||
+      xDomain[1] !== metadata.yearRange.end ||
+      yDomain !== null
+    );
+  }, [xDomain, yDomain, metadata.yearRange]);
 
   const handleSeriesClick = (entry: Payload) => {
     if (onSeriesClick && entry?.dataKey) {
@@ -62,6 +88,116 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
     }
   };
 
+  // Zoom controls
+  const handleZoomIn = useCallback(() => {
+    const range = xDomain[1] - xDomain[0];
+    const center = (xDomain[0] + xDomain[1]) / 2;
+    const newRange = range * 0.7; // 30% zoom in
+    setXDomain([
+      Math.max(metadata.yearRange.start, center - newRange / 2),
+      Math.min(metadata.yearRange.end, center + newRange / 2),
+    ]);
+  }, [xDomain, metadata.yearRange]);
+
+  const handleZoomOut = useCallback(() => {
+    const range = xDomain[1] - xDomain[0];
+    const center = (xDomain[0] + xDomain[1]) / 2;
+    const newRange = range * 1.3; // 30% zoom out
+    setXDomain([
+      Math.max(metadata.yearRange.start, center - newRange / 2),
+      Math.min(metadata.yearRange.end, center + newRange / 2),
+    ]);
+  }, [xDomain, metadata.yearRange]);
+
+  const handleReset = useCallback(() => {
+    setXDomain([metadata.yearRange.start, metadata.yearRange.end]);
+    setYDomain(null);
+  }, [metadata.yearRange]);
+
+  const handleFitToScreen = useCallback(() => {
+    // Filter data within current x range
+    const visibleData = chartData.filter(
+      (d) => d.year >= xDomain[0] && d.year <= xDomain[1]
+    );
+
+    // Calculate min/max values for visible series
+    const values: number[] = [];
+    visibleData.forEach((point) => {
+      sortedSeries.forEach(([key]) => {
+        const value = point[key];
+        if (typeof value === 'number') {
+          values.push(value);
+        }
+      });
+    });
+
+    if (values.length > 0) {
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const padding = (max - min) * 0.1;
+      setYDomain([Math.max(0, min - padding), max + padding]);
+    }
+  }, [chartData, xDomain, sortedSeries]);
+
+  // Wheel zoom handler
+  const handleWheel = useCallback(
+    (e: WheelEvent) => {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        if (e.deltaY < 0) {
+          handleZoomIn();
+        } else {
+          handleZoomOut();
+        }
+      }
+    },
+    [handleZoomIn, handleZoomOut]
+  );
+
+  // Pan handlers
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 0 && e.shiftKey) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+      e.preventDefault();
+    }
+  }, []);
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (isPanning && panStart && chartContainerRef.current) {
+        const deltaX = e.clientX - panStart.x;
+        const containerWidth = chartContainerRef.current.offsetWidth;
+        const xRange = xDomain[1] - xDomain[0];
+        const xShift = (-deltaX / containerWidth) * xRange;
+
+        const newXMin = xDomain[0] + xShift;
+        const newXMax = xDomain[1] + xShift;
+
+        // Keep within bounds
+        if (newXMin >= metadata.yearRange.start && newXMax <= metadata.yearRange.end) {
+          setXDomain([newXMin, newXMax]);
+          setPanStart({ x: e.clientX, y: e.clientY });
+        }
+      }
+    },
+    [isPanning, panStart, xDomain, metadata.yearRange]
+  );
+
+  const handleMouseUp = useCallback(() => {
+    setIsPanning(false);
+    setPanStart(null);
+  }, []);
+
+  // Add wheel event listener
+  useEffect(() => {
+    const container = chartContainerRef.current;
+    if (container) {
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      return () => container.removeEventListener('wheel', handleWheel);
+    }
+  }, [handleWheel]);
+
   return (
     <div
       dir={direction}
@@ -69,14 +205,30 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
       role="region"
       aria-label={metadata.title}
     >
-      <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-800 dark:text-gray-100 transition-colors" id="chart-title">{metadata.title}</h2>
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-gray-100 transition-colors" id="chart-title">{metadata.title}</h2>
+
+        <ZoomControls
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          onReset={handleReset}
+          onFitToScreen={handleFitToScreen}
+          language={language}
+          isZoomed={isZoomed}
+        />
+      </div>
 
       <div
-        className="w-full"
+        ref={chartContainerRef}
+        className={`w-full ${isPanning ? 'cursor-grabbing' : 'cursor-default'}`}
         style={{ height: appearance?.height ? `${appearance.height * 0.25}rem` : 'clamp(20rem, 60vh, 30rem)' }}
         role="img"
         aria-labelledby="chart-title"
         aria-describedby={metadata.footnote ? "chart-footnote" : undefined}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
       >
         <ResponsiveContainer>
           <ComposedChart
@@ -91,19 +243,21 @@ const EnhancedHousingChart: React.FC<ChartProps> = ({
             <XAxis
               dataKey="year"
               type="number"
-              domain={[metadata.yearRange.start, metadata.yearRange.end]}
+              domain={xDomain}
               ticks={xAxisTicks}
               onClick={handleYearClick}
               tickFormatter={(value) => value.toString()}
+              allowDataOverflow
             />
-            
+
             <YAxis
-              domain={[0, Math.max(...yAxisTicks)]}
+              domain={yDomain || [0, Math.max(...yAxisTicks)]}
               ticks={yAxisTicks}
               tickFormatter={(value) => new Intl.NumberFormat(
-                language === 'he' ? 'he-IL' : 'en-US', 
+                language === 'he' ? 'he-IL' : 'en-US',
                 { notation: 'compact', maximumFractionDigits: 0 }
               ).format(value)}
+              allowDataOverflow
             />
             
             <Tooltip
