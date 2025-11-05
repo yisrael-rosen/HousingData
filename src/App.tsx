@@ -5,6 +5,7 @@ import ControlPanel from './components/ControlPanel';
 import SkeletonLoader from './components/SkeletonLoader';
 import KeyboardShortcutsHelp from './components/KeyboardShortcutsHelp';
 import AdvancedFilters from './components/AdvancedFilters';
+import ComparisonMode from './components/ComparisonMode';
 import { defaultConfig, defaultData } from './data/defaultData';
 import { ChartConfig } from './types/ChartTypes';
 import { useTheme } from './contexts/ThemeContext';
@@ -22,6 +23,7 @@ const App: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
   const [filters, setFilters] = useState<FilterConfig>({
     yearRange: {
       min: Math.min(...defaultData.map(d => d.year)),
@@ -113,6 +115,7 @@ const App: React.FC = () => {
       .map(([key, seriesConfig]) => ({
         key,
         name: seriesConfig.name,
+        color: seriesConfig.color,
       }));
   }, [config.seriesTypes]);
 
@@ -147,6 +150,7 @@ const App: React.FC = () => {
             chartConfig={config}
             settingsRef={settingsRef}
             onOpenFilters={() => setShowFilters(true)}
+            onOpenComparison={() => setShowComparison(true)}
           />
 
           <ErrorBoundary>
@@ -190,6 +194,15 @@ const App: React.FC = () => {
         availableSeries={availableSeries}
         onApplyFilters={handleApplyFilters}
         currentFilters={filters}
+      />
+
+      {/* Comparison Mode Modal */}
+      <ComparisonMode
+        isOpen={showComparison}
+        onClose={() => setShowComparison(false)}
+        language={config.metadata.language || 'he'}
+        data={filteredData}
+        availableSeries={availableSeries}
       />
     </div>
   );

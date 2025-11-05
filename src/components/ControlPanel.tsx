@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, Globe, Download, Settings, FileText, Image, Filter } from 'lucide-react';
+import { Moon, Sun, Globe, Download, Settings, FileText, Image, Filter, GitCompare } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { exportToPNG, exportToCSV } from '../utils/exportUtils';
 import { ChartConfig, DataPoint } from '../types/ChartTypes';
@@ -12,6 +12,7 @@ interface ControlPanelProps {
   chartConfig?: ChartConfig;
   settingsRef?: React.RefObject<HTMLButtonElement>;
   onOpenFilters?: () => void;
+  onOpenComparison?: () => void;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -21,7 +22,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   chartData,
   chartConfig,
   settingsRef,
-  onOpenFilters
+  onOpenFilters,
+  onOpenComparison
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -152,6 +154,18 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
           >
             <Filter className="w-4 h-4" aria-hidden="true" />
             <span className="text-sm hidden sm:inline">{language === 'he' ? 'סינונים' : 'Filters'}</span>
+          </button>
+        )}
+
+        {/* Comparison Button */}
+        {onOpenComparison && (
+          <button
+            onClick={onOpenComparison}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            aria-label={language === 'he' ? 'השוואת שנים' : 'Compare years'}
+          >
+            <GitCompare className="w-4 h-4" aria-hidden="true" />
+            <span className="text-sm hidden sm:inline">{language === 'he' ? 'השוואה' : 'Compare'}</span>
           </button>
         )}
 
