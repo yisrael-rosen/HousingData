@@ -10,6 +10,7 @@ interface ControlPanelProps {
   chartRef?: React.RefObject<HTMLDivElement>;
   chartData?: DataPoint[];
   chartConfig?: ChartConfig;
+  settingsRef?: React.RefObject<HTMLButtonElement>;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -17,18 +18,19 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   onLanguageChange,
   chartRef,
   chartData,
-  chartConfig
+  chartConfig,
+  settingsRef
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
-  const settingsRef = useRef<HTMLDivElement>(null);
+  const settingsMenuRef = useRef<HTMLDivElement>(null);
   const exportRef = useRef<HTMLDivElement>(null);
 
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+      if (settingsMenuRef.current && !settingsMenuRef.current.contains(event.target as Node)) {
         setShowSettingsMenu(false);
       }
       if (exportRef.current && !exportRef.current.contains(event.target as Node)) {
@@ -59,8 +61,9 @@ const ControlPanel: React.FC<ControlPanelProps> = ({
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 transition-colors">
       {/* Settings Menu */}
-      <div className="relative" ref={settingsRef}>
+      <div className="relative" ref={settingsMenuRef}>
         <button
+          ref={settingsRef}
           onClick={() => setShowSettingsMenu(!showSettingsMenu)}
           className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
           aria-label={language === 'he' ? 'תפריט הגדרות' : 'Settings menu'}
