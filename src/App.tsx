@@ -14,6 +14,7 @@ const EnhancedHousingChart = lazy(() => import('./components/EnhancedHousingChar
 const KeyboardShortcutsHelp = lazy(() => import('./components/KeyboardShortcutsHelp'));
 const AdvancedFilters = lazy(() => import('./components/AdvancedFilters'));
 const ComparisonMode = lazy(() => import('./components/ComparisonMode'));
+const TableView = lazy(() => import('./components/TableView'));
 
 interface FilterConfig {
   yearRange: { min: number; max: number };
@@ -37,6 +38,7 @@ const App: React.FC = () => {
   const [showKeyboardHelp, setShowKeyboardHelp] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [showTableView, setShowTableView] = useState(false);
   const chartRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLButtonElement>(null);
   const { toggleTheme } = useTheme();
@@ -156,6 +158,7 @@ const App: React.FC = () => {
             settingsRef={settingsRef}
             onOpenFilters={() => setShowFilters(true)}
             onOpenComparison={() => setShowComparison(true)}
+            onOpenTableView={() => setShowTableView(true)}
           />
 
           <ErrorBoundary>
@@ -220,6 +223,20 @@ const App: React.FC = () => {
             language={config.metadata.language || 'he'}
             data={filteredData}
             availableSeries={availableSeries}
+          />
+        </Suspense>
+      )}
+
+      {/* Table View Modal */}
+      {showTableView && (
+        <Suspense fallback={null}>
+          <TableView
+            isOpen={showTableView}
+            onClose={() => setShowTableView(false)}
+            language={config.metadata.language || 'he'}
+            data={filteredData}
+            availableSeries={availableSeries}
+            config={config}
           />
         </Suspense>
       )}

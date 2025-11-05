@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Moon, Sun, Globe, Download, Settings, FileText, Image, Filter, GitCompare } from 'lucide-react';
+import { Moon, Sun, Globe, Download, Settings, FileText, Image, Filter, GitCompare, Table2 } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { exportToPNG, exportToCSV } from '../utils/exportUtils';
 import { ChartConfig, DataPoint } from '../types/ChartTypes';
@@ -13,6 +13,7 @@ interface ControlPanelProps {
   settingsRef?: React.RefObject<HTMLButtonElement>;
   onOpenFilters?: () => void;
   onOpenComparison?: () => void;
+  onOpenTableView?: () => void;
 }
 
 const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
@@ -23,7 +24,8 @@ const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
   chartConfig,
   settingsRef,
   onOpenFilters,
-  onOpenComparison
+  onOpenComparison,
+  onOpenTableView
 }) => {
   const { theme, toggleTheme } = useTheme();
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -166,6 +168,18 @@ const ControlPanel: React.FC<ControlPanelProps> = React.memo(({
           >
             <GitCompare className="w-4 h-4" aria-hidden="true" />
             <span className="text-sm hidden sm:inline">{language === 'he' ? 'השוואה' : 'Compare'}</span>
+          </button>
+        )}
+
+        {/* Table View Button */}
+        {onOpenTableView && (
+          <button
+            onClick={onOpenTableView}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            aria-label={language === 'he' ? 'תצוגת טבלה' : 'Table view'}
+          >
+            <Table2 className="w-4 h-4" aria-hidden="true" />
+            <span className="text-sm hidden sm:inline">{language === 'he' ? 'טבלה' : 'Table'}</span>
           </button>
         )}
 
